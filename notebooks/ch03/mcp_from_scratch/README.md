@@ -59,6 +59,28 @@ python3 mcp_from_scratch/client.py --search-only 'Model Context Protocol'
 python3 mcp_from_scratch/client.py 'MCP가 무엇인지 검색해서 알려줘'
 ```
 
+## 직접 Tool 호출과 MCP 호출을 한 번에 비교
+
+`tool_and_mcp.py` 하나를 실행하면 같은 질문으로 다음 두 경로를 차례로 실행합니다.
+
+1. **직접 Tool 호출**: Chat Completions의 `tool_calls`를 받아 `search_tavily()`를
+   직접 실행하고, `role="tool"` 결과를 `tool_call_id`로 연결해 최종 답변을 받습니다.
+2. **MCP 호출**: 기존 `client.py`로 서버를 초기화하고 도구를 발견한 뒤,
+   `tools/call`로 같은 검색 함수를 서버에서 실행합니다. 결과는 Responses API의
+   `function_call_output`으로 전달합니다.
+
+```powershell
+# 저장소 루트에서 Windows 가상 환경의 Python으로 실행
+.\.venv\Scripts\python.exe -X utf8 notebooks\ch03\mcp_from_scratch\tool_and_mcp.py "MCP tools를 검색하고 출처와 함께 설명해줘."
+```
+
+기존 `client.py`와 `server.py`를 재사용하는 단일 실행 파일입니다. 두 API 키와
+기존 의존성만 필요하며 `.env` 탐색 규칙도 같습니다. 두 경로 모두 실제 검색과
+모델 API를 호출하므로 각각 사용량이 발생합니다. 도구 요청과 결과는 stderr,
+두 최종 답변은 stdout으로 출력합니다. 검색 결과와 모델 답변은 실행마다 달라질
+수 있으며 두 답변이 같아야 하는 것은 아닙니다. 직접 호출도 최대 6번의 모델
+요청으로 제한하고, 모든 검색이 실패하면 추측성 답변 대신 오류로 종료합니다.
+
 ## 코드를 읽는 순서
 
 1. `server.py`의 `SEARCH_TOOL`: 도구 이름, 설명, 입력 JSON Schema.
@@ -108,7 +130,12 @@ strict 모드에 맞춥니다. 임의의 MCP 서버 스키마가 항상 OpenAI s
 실행 결과를 연결합니다. 두 ID는 서로 다른 역할을 합니다.
 
 잘못된 메서드 등 통신 오류는 JSON-RPC `error`로 반환합니다. 검색 실패나 잘못된
-검색 인자는 `result.isError: true`로 반환하므로 모델도 실패를 보고 답변할 수 있습니다.
+검색 인자는 `result.isError: true`로 반환하므로 모델도 실패를 보고 다시 검색할 수 있습니다.
+Tavily의 일시적인 HTTP 오류(429, 500, 502, 503, 504)는 서버에서 최대 2번 재시도하며,
+대기 시간을 포함한 재시도 예산은 35초입니다. 인증 오류(401 등)는 재시도하지 않습니다.
+모든 검색이 실패하면 클라이언트는 추측성 답변 대신 원래 검색 오류를 포함한 예외로
+종료합니다. 이 예제에서 별도 맥락 없이 질문하는 MCP는 Model Context Protocol을 뜻합니다.
+서버는 UTF-8 모드로 실행하므로 Windows에서도 한글 JSON 메시지를 주고받을 수 있습니다.
 첫 모델 요청은 `tool_choice="required"`로 검색을 요청하고, 이후에는 모델이 추가
 검색 여부를 결정합니다. 총 모델 요청은 최대 6번이며 마지막에는 최종 답변을 요청합니다.
 
