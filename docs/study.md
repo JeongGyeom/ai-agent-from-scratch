@@ -198,6 +198,100 @@ class Event(BaseModel):
 
 `lambda: str(uuid.uuid4())`는 인자를 받지 않고, 호출될 때 새 UUID 문자열을 반환한다. 다음 일반 함수와 같은 역할을 한다.
 
+# 데코레이터
+
+- **종류:** Python 문법
+- **표기:** `@함수`
+
+데코레이터는 함수나 클래스를 다른 함수에 전달해, 그 결과로 원래 이름이 가리키는 대상을 바꾸는 문법이다. `@decorate`는 아래처럼 쓴 것과 같다.
+
+```python
+@decorate
+def hello():
+    pass
+```
+
+```python
+def hello():
+    pass
+
+hello = decorate(hello)
+```
+
+`@`는 아무 함수에나 붙여도 같은 동작을 하는 특별한 기능이 아니다. 파이썬은 아래 함수 객체를 데코레이터에 전달하고, 데코레이터가 반환한 값을 함수 이름에 다시 대입한다. 따라서 데코레이터 함수의 매개변수와 반환값이 동작을 결정한다.
+
+## 인자 없는 형태와 설정을 받는 형태
+
+`notebooks/ch04/base.py`의 `tool`은 일반 함수를 `FunctionTool` 객체로 감싸며, `@tool`과 `@tool(name="인사")` 두 형태를 지원한다.
+
+```python
+def tool(func=None, *, name=None, description=None):
+    def decorator(f):
+        return FunctionTool(func=f, name=name, description=description)
+
+    if func is not None:
+        return decorator(func)
+    return decorator
+```
+
+위 코드는 `base.py`의 관련 부분을 설명하기 위한 발췌다. `FunctionTool` 클래스 정의는 생략했다.
+
+### `@tool`로 바로 쓰는 경우
+
+```python
+@tool
+def hello():
+    pass
+```
+
+이는 `hello = tool(hello)`와 같다. 함수가 `func`로 바로 들어오므로 `func is not None`이 참이고, `decorator(func)`가 즉시 실행되어 `FunctionTool`을 반환한다.
+
+### `@tool(name="인사")`처럼 설정을 먼저 주는 경우
+
+```python
+@tool(name="인사")
+def hello():
+    pass
+```
+
+이는 `hello = tool(name="인사")(hello)`와 같다. 이를 두 단계로 보면 다음과 같다.
+
+```python
+decorator = tool(name="인사")  # func는 기본값 None, name은 "인사"
+hello = decorator(hello)       # decorator의 f에 hello 함수가 전달됨
+```
+
+첫 호출에서는 함수 인자가 아직 `tool`에 전달되지 않았으므로, `tool`은 `decorator` 함수를 반환한다. 그 반환 함수를 바로 이어서 호출할 때 `hello`가 전달된다. `decorator`가 만든 `FunctionTool`은 `name="인사"`를 사용한다.
+
+`return decorator`는 함수를 **호출하지 않고 함수 객체를 반환**한다. `return decorator(func)`는 `decorator`를 지금 호출하고 그 결과를 반환한다.
+
+> 핵심: `@tool`은 함수와 설정을 한 번에 전달하고, `@tool(name=...)`은 설정을 먼저 전달한 뒤 함수를 전달한다.
+
+# 클로저
+
+- **종류:** 함수의 동작 방식
+
+클로저는 안쪽 함수가 바깥 함수의 지역 변수를 기억해 두어, 바깥 함수 실행이 끝난 뒤에도 그 변수를 사용할 수 있는 구조다.
+
+```python
+def make_greeter(name):
+    def greet():
+        print(f"안녕, {name}!")
+    return greet
+
+
+hello = make_greeter("민수")
+hello()  # 안녕, 민수!
+```
+
+`make_greeter("민수")`가 끝난 뒤에도 반환된 `greet` 함수는 `name`이 `"민수"`였다는 것을 기억한다.
+
+## `tool`에서의 클로저
+
+`tool(name="인사")`는 안쪽의 `decorator` 함수를 반환한다. 반환된 `decorator`는 바깥 함수 `tool`의 `name` 변수 값을 기억하므로, 나중에 `decorator(hello)`로 호출되어도 `FunctionTool`을 만들 때 `name="인사"`를 사용할 수 있다. 이 예에서는 `decorator`의 매개변수 `f`로 실제 `hello` 함수가 들어온다.
+
+> 핵심: 클로저 덕분에 설정값을 먼저 받은 함수가, 나중에 받은 함수에 그 설정을 적용할 수 있다.
+
 ```python
 def make_id():
     return str(uuid.uuid4())
