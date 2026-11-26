@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReAct 루프는 언제 멈추는가?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Instrument+Serif&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR&amp;display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --paper: #f5f5f5;
+  --paper-2: #ececec;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --rule: #bfc0c0;
+  --faint: #d6d8dc;
+  --accent: #eb6c36;
+  --accent-text: #8c3c1c;
+  --accent-tint: #fae8df;
+  --sans: 'Geist', 'Noto Sans KR', 'Noto Sans CJK KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --serif: 'Instrument Serif', 'Noto Serif KR', 'Noto Serif CJK KR', serif;
+  --mono: 'Geist Mono', 'Noto Sans Mono CJK KR', monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); }
+main { width: 100%; max-width: 1600px; margin: 0 auto; overflow-x: auto; }
+svg { display: block; width: 100%; min-width: 1280px; height: auto; }
+text { fill: var(--ink); font-family: var(--sans); }
+.canvas, .mask { fill: var(--paper); }
+.title { font: 400 40px var(--serif); letter-spacing: -.02em; }
+.title-code { font-family: var(--mono); }
+.eyebrow, .label { font: 500 12px var(--sans); fill: var(--muted); }
+.name { font: 600 16px var(--sans); }
+.description, .foot { font: 400 12px var(--sans); fill: var(--muted); }
+.code { font: 400 12px var(--mono); }
+.focal-label { fill: var(--accent-text); font-weight: 600; }
+.rule { stroke: var(--faint); stroke-width: 1; }
+.box { fill: var(--paper); stroke: var(--rule); stroke-width: 1.4; }
+.shade { fill: var(--paper-2); }
+.focus { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+.end { fill: var(--paper-2); stroke: var(--rule); stroke-width: 1.4; }
+.edge { fill: none; stroke: var(--muted); stroke-width: 1.65; }
+.return { stroke-dasharray: 5 4; }
+.hot { stroke: var(--accent); stroke-width: 2.8; }
+.lifeline { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 5; }
+.activation { fill: var(--paper-2); stroke: var(--rule); stroke-width: 1; }
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  body { print-color-adjust: exact; }
+  main { max-width: none; overflow: visible; }
+  svg { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main tabindex="0" aria-label="가로로 스크롤할 수 있는 발표 다이어그램">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="03-flowchart-title 03-flowchart-desc">
+<title id="03-flowchart-title">ReAct 루프는 언제 멈추는가?</title>
+<desc id="03-flowchart-desc">기본 텍스트 모드에서 run은 입력을 기록하고 최대 단계까지 step을 반복하며, step은 모델 응답과 도구 결과를 기록하고 run은 최종 답변을 얻으면 반환한다.</desc>
+<defs>
+<marker id="03-flowchart-arrow-normal" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#4f5d75"/></marker>
+<marker id="03-flowchart-arrow-accent" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#eb6c36"/></marker>
+<marker id="03-flowchart-arrow-link" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#2e5aa8"/></marker>
+</defs>
+<rect x="0" y="0" width="1280" height="720" rx="0" class="canvas"/><text x="64" y="46" class="eyebrow" text-anchor="start">4장 ReAct · 반복과 종료</text><text x="64" y="94" class="title" text-anchor="start">ReAct 루프는 언제 멈추는가?</text>
+<path d="M584 188 V207" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M584 263 V296" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M716 235 H840" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M584 360 V388" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M716 416 H840" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M584 444 V464" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M1000 448 V488 Q1000 496 992 496 H704" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M584 528 V552" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M716 584 H840" class="edge" marker-end="url(#03-flowchart-arrow-normal)"/>
+<path d="M452 584 H144 Q136 584 136 576 V243 Q136 235 144 235 H452" class="edge hot" marker-end="url(#03-flowchart-arrow-accent)"/>
+<rect x="592" y="266" width="32" height="20" rx="2" class="mask"/><text x="596" y="280" class="label" text-anchor="start">예</text>
+<rect x="754.0" y="206" width="48" height="20" rx="2" class="mask"/><text x="778" y="220" class="label" text-anchor="middle">아니요</text>
+<rect x="762.0" y="387" width="32" height="20" rx="2" class="mask"/><text x="778" y="401" class="label" text-anchor="middle">예</text>
+<rect x="592" y="441" width="48" height="20" rx="2" class="mask"/><text x="596" y="455" class="label" text-anchor="start">아니요</text>
+<rect x="762.0" y="555" width="32" height="20" rx="2" class="mask"/><text x="778" y="569" class="label" text-anchor="middle">예</text>
+<rect x="146" y="373" width="180" height="20" rx="2" class="mask"/><text x="150" y="387" class="label focal-label" text-anchor="start">아니요 · 다음 step()으로</text>
+<text x="150" y="412" class="description" text-anchor="start">기록된 ToolResult를 다음 요청 이력에 포함</text>
+<rect x="464" y="124" width="240" height="64" rx="6" class="box"/><text x="584.0" y="162.0" class="name" text-anchor="middle">run() · 사용자 Event 기록</text>
+<path d="M584 207 L716 235 L584 263 L452 235 Z" class="box"/><text x="584" y="241" class="name" text-anchor="middle">아직 단계가 남았나?</text>
+<rect x="424" y="296" width="320" height="64" rx="6" class="box"/><text x="584.0" y="324.0" class="name" text-anchor="middle">step() · 현재 이력으로 모델 요청</text><text x="584.0" y="344.0" class="description" text-anchor="middle">think() 응답을 Event로 기록</text>
+<path d="M584 388 L716 416 L584 444 L452 416 Z" class="box"/><text x="584" y="422" class="name" text-anchor="middle">ToolCall이 있나?</text>
+<rect x="840" y="384" width="320" height="64" rx="6" class="box"/><text x="1000.0" y="412.0" class="name" text-anchor="middle">act() · 요청된 도구 실행</text><text x="1000.0" y="432.0" class="description" text-anchor="middle">ToolResult를 Event로 기록</text>
+<rect x="464" y="464" width="240" height="64" rx="6" class="box"/><text x="584.0" y="492.0" class="name" text-anchor="middle">단계 수 1 증가</text><text x="584.0" y="512.0" class="code" text-anchor="middle">context.increment_step()</text>
+<path d="M584 552 L716 584 L584 616 L452 584 Z" class="box"/><text x="584" y="590" class="name" text-anchor="middle">최종 답변을 얻었나?</text>
+<rect x="840" y="203" width="320" height="64" rx="20" class="end"/><text x="1000.0" y="231.0" class="name" text-anchor="middle">최대 단계 도달 · 최종 답변 없이 종료</text><text x="1000.0" y="251.0" class="code" text-anchor="middle">AgentResult(output=None, …)</text>
+<rect x="840" y="552" width="320" height="64" rx="20" class="end"/><text x="1000.0" y="580.0" class="name" text-anchor="middle">최종 답변 반환</text><text x="1000.0" y="600.0" class="description" text-anchor="middle">AgentResult(output=최종 답변, …)</text>
+<text x="840" y="285" class="description" text-anchor="start">단계 한도는 max_steps · 기본값 10</text>
+<line x1="64" y1="660" x2="1216" y2="660" class="rule"/>
+<text x="64" y="687" class="foot" text-anchor="start">텍스트 모드에서는 마지막 Event에 ToolCall이나 ToolResult가 없을 때 assistant의 Message에서 답변을 꺼냅니다.</text>
+</svg>
+</main>
+</body>
+</html>

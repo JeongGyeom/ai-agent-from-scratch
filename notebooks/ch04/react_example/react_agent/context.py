@@ -1,0 +1,36 @@
+"""실행 중 발생한 이벤트와 최종 결과를 보관한다."""
+
+from __future__ import annotations
+
+import uuid
+from dataclasses import dataclass, field
+from typing import List
+
+from pydantic import BaseModel
+
+from .types import Event
+
+
+@dataclass
+class ExecutionContext:
+    """Central storage for all execution state."""
+
+    execution_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    events: List[Event] = field(default_factory=list)
+    current_step: int = 0
+    final_result: str | BaseModel | None = None
+
+    def add_event(self, event: Event):
+        """Append an event to the execution history."""
+        self.events.append(event)
+
+    def increment_step(self):
+        """Move to the next execution step."""
+        self.current_step += 1
+
+
+@dataclass
+class AgentResult:
+    """Result of an agent execution."""
+    output: str | BaseModel | None
+    context: ExecutionContext

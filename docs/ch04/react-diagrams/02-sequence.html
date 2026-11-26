@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>도구 결과는 어떻게 최종 답변이 되는가?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Instrument+Serif&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR&amp;display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --paper: #f5f5f5;
+  --paper-2: #ececec;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --rule: #bfc0c0;
+  --faint: #d6d8dc;
+  --accent: #eb6c36;
+  --accent-text: #8c3c1c;
+  --accent-tint: #fae8df;
+  --sans: 'Geist', 'Noto Sans KR', 'Noto Sans CJK KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --serif: 'Instrument Serif', 'Noto Serif KR', 'Noto Serif CJK KR', serif;
+  --mono: 'Geist Mono', 'Noto Sans Mono CJK KR', monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); }
+main { width: 100%; max-width: 1600px; margin: 0 auto; overflow-x: auto; }
+svg { display: block; width: 100%; min-width: 1280px; height: auto; }
+text { fill: var(--ink); font-family: var(--sans); }
+.canvas, .mask { fill: var(--paper); }
+.title { font: 400 40px var(--serif); letter-spacing: -.02em; }
+.title-code { font-family: var(--mono); }
+.eyebrow, .label { font: 500 12px var(--sans); fill: var(--muted); }
+.name { font: 600 16px var(--sans); }
+.description, .foot { font: 400 12px var(--sans); fill: var(--muted); }
+.code { font: 400 12px var(--mono); }
+.focal-label { fill: var(--accent-text); font-weight: 600; }
+.rule { stroke: var(--faint); stroke-width: 1; }
+.box { fill: var(--paper); stroke: var(--rule); stroke-width: 1.4; }
+.shade { fill: var(--paper-2); }
+.focus { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+.end { fill: var(--paper-2); stroke: var(--rule); stroke-width: 1.4; }
+.edge { fill: none; stroke: var(--muted); stroke-width: 1.65; }
+.return { stroke-dasharray: 5 4; }
+.hot { stroke: var(--accent); stroke-width: 2.8; }
+.lifeline { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 5; }
+.activation { fill: var(--paper-2); stroke: var(--rule); stroke-width: 1; }
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  body { print-color-adjust: exact; }
+  main { max-width: none; overflow: visible; }
+  svg { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main tabindex="0" aria-label="가로로 스크롤할 수 있는 발표 다이어그램">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="02-sequence-title 02-sequence-desc">
+<title id="02-sequence-title">도구 결과는 어떻게 최종 답변이 되는가?</title>
+<desc id="02-sequence-desc">사용자가 1234 곱하기 5678을 묻자 Agent가 첫 모델 응답의 calculator 호출을 실행하고 ToolResult를 담은 두 번째 요청으로 최종 답변을 받는다.</desc>
+<defs>
+<marker id="02-sequence-arrow-normal" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#4f5d75"/></marker>
+<marker id="02-sequence-arrow-accent" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#eb6c36"/></marker>
+<marker id="02-sequence-arrow-link" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#2e5aa8"/></marker>
+</defs>
+<rect x="0" y="0" width="1280" height="720" rx="0" class="canvas"/><text x="64" y="46" class="eyebrow" text-anchor="start">4장 ReAct · 계산 질문 한 번의 실행</text><text x="64" y="94" class="title" text-anchor="start">도구 결과는 어떻게 최종 답변이 되는가?</text>
+<line x1="64" y1="468" x2="1216" y2="468" class="rule"/>
+<line x1="216" y1="188" x2="216" y2="636" class="lifeline"/>
+<line x1="504" y1="188" x2="504" y2="636" class="lifeline"/>
+<line x1="800" y1="188" x2="800" y2="636" class="lifeline"/>
+<line x1="1088" y1="188" x2="1088" y2="636" class="lifeline"/>
+<rect x="500" y="224" width="8" height="392" rx="0" class="activation"/>
+<rect x="796" y="272" width="8" height="42" rx="0" class="activation"/>
+<rect x="796" y="522" width="8" height="50" rx="0" class="activation"/>
+<rect x="1084" y="356" width="8" height="44" rx="0" class="activation"/>
+<path d="M216 224 H500" class="edge" marker-end="url(#02-sequence-arrow-normal)"/>
+<path d="M508 272 H796" class="edge" marker-end="url(#02-sequence-arrow-normal)"/>
+<path d="M796 314 H508" class="edge return" marker-end="url(#02-sequence-arrow-normal)"/>
+<path d="M508 356 H1084" class="edge" marker-end="url(#02-sequence-arrow-normal)"/>
+<path d="M1084 400 H508" class="edge return" marker-end="url(#02-sequence-arrow-normal)"/>
+<path d="M508 421 H554 Q562 421 562 429 V442 Q562 450 554 450 H508" class="edge" marker-end="url(#02-sequence-arrow-normal)"/>
+<path d="M508 522 H796" class="edge hot" marker-end="url(#02-sequence-arrow-accent)"/>
+<path d="M796 572 H508" class="edge return" marker-end="url(#02-sequence-arrow-normal)"/>
+<path d="M500 616 H216" class="edge return" marker-end="url(#02-sequence-arrow-normal)"/>
+<rect x="258.0" y="195" width="204" height="20" rx="2" class="mask"/><text x="360" y="209" class="label" text-anchor="middle">1234 곱하기 5678은 얼마야?</text>
+<rect x="586.0" y="243" width="132" height="20" rx="2" class="mask"/><text x="652" y="257" class="label" text-anchor="middle">질문 이력으로 요청</text>
+<rect x="568.0" y="285" width="168" height="20" rx="2" class="mask"/><text x="652" y="299" class="code" text-anchor="middle">ToolCall(calculator)</text>
+<rect x="858.0" y="327" width="172" height="20" rx="2" class="mask"/><text x="944" y="341" class="code" text-anchor="middle">multiply · 1234, 5678</text>
+<rect x="904.0" y="371" width="80" height="20" rx="2" class="mask"/><text x="944" y="385" class="code" text-anchor="middle">7006652</text>
+<rect x="570" y="421" width="184" height="20" rx="2" class="mask"/><text x="574" y="435" class="label" text-anchor="start">ToolResult 기록  ·  7006652</text>
+<rect x="515.0" y="493" width="274" height="20" rx="2" class="mask"/><text x="652" y="507" class="label focal-label" text-anchor="middle">앞선 ToolCall과 ToolResult를 포함한 이력</text>
+<rect x="528.0" y="543" width="248" height="20" rx="2" class="mask"/><text x="652" y="557" class="code" text-anchor="middle">Message · 1234 × 5678 = 7006652</text>
+<rect x="258.0" y="587" width="204" height="20" rx="2" class="mask"/><text x="360" y="601" class="code" text-anchor="middle">1234 × 5678 = 7006652</text>
+<text x="64" y="270" class="name" text-anchor="start">첫 번째 모델 호출</text>
+<text x="64" y="291" class="description" text-anchor="start">계산 요청 생성</text>
+<text x="64" y="520" class="name" text-anchor="start">두 번째 모델 호출</text>
+<text x="64" y="541" class="description" text-anchor="start">계산값으로 답변</text>
+<rect x="136" y="124" width="160" height="64" rx="6" class="box shade"/><text x="216.0" y="162.0" class="name" text-anchor="middle">사용자</text>
+<rect x="424" y="124" width="160" height="64" rx="6" class="box shade"/><text x="504.0" y="162.0" class="name" text-anchor="middle">Agent</text>
+<rect x="720" y="124" width="160" height="64" rx="6" class="box shade"/><text x="800.0" y="162.0" class="name" text-anchor="middle">모델</text>
+<rect x="1008" y="124" width="160" height="64" rx="6" class="box shade"/><text x="1088.0" y="162.0" class="name" text-anchor="middle">계산기</text>
+<line x1="64" y1="660" x2="1216" y2="660" class="rule"/>
+<text x="64" y="687" class="foot" text-anchor="start">ToolCall과 ToolResult는 같은 tool_call_id로 연결됩니다.</text>
+<text x="744" y="687" class="foot" text-anchor="start">두 번째 요청에서 build_messages()가 결과를 role=&quot;tool&quot;로 변환합니다.</text>
+</svg>
+</main>
+</body>
+</html>

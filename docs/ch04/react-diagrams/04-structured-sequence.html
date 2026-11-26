@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>final_answer로 구조화된 결과 받기</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Instrument+Serif&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR&amp;display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --paper: #f5f5f5;
+  --paper-2: #ececec;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --rule: #bfc0c0;
+  --faint: #d6d8dc;
+  --accent: #eb6c36;
+  --accent-text: #8c3c1c;
+  --accent-tint: #fae8df;
+  --sans: 'Geist', 'Noto Sans KR', 'Noto Sans CJK KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --serif: 'Instrument Serif', 'Noto Serif KR', 'Noto Serif CJK KR', serif;
+  --mono: 'Geist Mono', 'Noto Sans Mono CJK KR', monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); }
+main { width: 100%; max-width: 1600px; margin: 0 auto; overflow-x: auto; }
+svg { display: block; width: 100%; min-width: 1280px; height: auto; }
+text { fill: var(--ink); font-family: var(--sans); }
+.canvas, .mask { fill: var(--paper); }
+.title { font: 400 40px var(--serif); letter-spacing: -.02em; }
+.title-code { font-family: var(--mono); }
+.eyebrow, .label { font: 500 12px var(--sans); fill: var(--muted); }
+.name { font: 600 16px var(--sans); }
+.description, .foot { font: 400 12px var(--sans); fill: var(--muted); }
+.code { font: 400 12px var(--mono); }
+.focal-label { fill: var(--accent-text); font-weight: 600; }
+.rule { stroke: var(--faint); stroke-width: 1; }
+.box { fill: var(--paper); stroke: var(--rule); stroke-width: 1.4; }
+.shade { fill: var(--paper-2); }
+.focus { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+.end { fill: var(--paper-2); stroke: var(--rule); stroke-width: 1.4; }
+.edge { fill: none; stroke: var(--muted); stroke-width: 1.65; }
+.return { stroke-dasharray: 5 4; }
+.hot { stroke: var(--accent); stroke-width: 2.8; }
+.lifeline { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 5; }
+.activation { fill: var(--paper-2); stroke: var(--rule); stroke-width: 1; }
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  body { print-color-adjust: exact; }
+  main { max-width: none; overflow: visible; }
+  svg { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main tabindex="0" aria-label="가로로 스크롤할 수 있는 발표 다이어그램">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="04-structured-sequence-title 04-structured-sequence-desc">
+<title id="04-structured-sequence-title">final_answer로 구조화된 결과 받기</title>
+<desc id="04-structured-sequence-desc">두 번째 모델 요청 뒤 Agent의 act가 final_answer 도구의 output을 CalculationAnswer로 검증하고, CLI는 검증된 결과를 JSON으로 출력한다.</desc>
+<defs>
+<marker id="04-structured-sequence-arrow-normal" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#4f5d75"/></marker>
+<marker id="04-structured-sequence-arrow-accent" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#eb6c36"/></marker>
+<marker id="04-structured-sequence-arrow-link" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" refX="10" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#2e5aa8"/></marker>
+</defs>
+<rect x="0" y="0" width="1280" height="720" rx="0" class="canvas"/><text x="64" y="46" class="eyebrow" text-anchor="start">4장 ReAct · 구조화 응답 · 두 번째 모델 호출</text><text x="64" y="94" class="title" text-anchor="start"><tspan class="title-code">final_answer</tspan>로 구조화된 결과 받기</text>
+<line x1="256" y1="208" x2="256" y2="556" class="lifeline"/>
+<line x1="608" y1="208" x2="608" y2="636" class="lifeline"/>
+<line x1="1016" y1="208" x2="1016" y2="636" class="lifeline"/>
+<rect x="604" y="208" width="8" height="324" rx="0" class="activation"/>
+<rect x="1012" y="262" width="8" height="62" rx="0" class="activation"/>
+<rect x="252" y="532" width="8" height="24" rx="0" class="activation"/>
+<path d="M612 262 H1012" class="edge" marker-end="url(#04-structured-sequence-arrow-normal)"/>
+<path d="M1012 324 H612" class="edge return" marker-end="url(#04-structured-sequence-arrow-normal)"/>
+<path d="M612 382 H668 Q676 382 676 390 V423 Q676 431 668 431 H612" class="edge hot" marker-end="url(#04-structured-sequence-arrow-accent)"/>
+<path d="M612 460 H668 Q676 460 676 468 V481 Q676 489 668 489 H612" class="edge" marker-end="url(#04-structured-sequence-arrow-normal)"/>
+<path d="M604 532 H260" class="edge return" marker-end="url(#04-structured-sequence-arrow-normal)"/>
+<text x="64" y="122" class="description" text-anchor="start">첫 단계 · calculator가 1234 × 5678을 계산하고 Agent가 ToolResult(7006652)를 기록</text>
+<rect x="648.0" y="233" width="328" height="20" rx="2" class="mask"/><text x="812" y="247" class="label" text-anchor="middle">도구 결과를 포함한 이력 · tool_choice=&quot;required&quot;</text>
+<rect x="620.0" y="295" width="384" height="20" rx="2" class="mask"/><text x="812" y="309" class="code" text-anchor="middle">ToolCall(final_answer) · arguments={&quot;output&quot;: {…}}</text>
+<rect x="704" y="364" width="304" height="80" rx="6" class="box focus"/>
+<text x="716" y="394" class="name" text-anchor="start">act() · final_answer 실행 및 검증</text>
+<text x="716" y="420" class="code" text-anchor="start">CalculationAnswer.model_validate(output)</text>
+<rect x="688" y="460" width="284" height="20" rx="2" class="mask"/><text x="692" y="474" class="label" text-anchor="start">성공한 ToolResult를 기록하고 최종 결과로 채택</text>
+<rect x="280.0" y="503" width="304" height="20" rx="2" class="mask"/><text x="432" y="517" class="code" text-anchor="middle">AgentResult.output · CalculationAnswer</text>
+<rect x="68" y="556" width="408" height="96" rx="6" class="box shade"/>
+<text x="84" y="575" class="description" text-anchor="start">CLI가 model_dump_json(indent=2)로 출력</text>
+<text x="84" y="591" class="code" text-anchor="start">{</text>
+<text x="99" y="607" class="code" text-anchor="start">&quot;result&quot;: 7006652.0,</text>
+<text x="99" y="623" class="code" text-anchor="start">&quot;explanation&quot;: &quot;계산기로 1234와 5678을 곱했습니다.&quot;</text>
+<text x="84" y="639" class="code" text-anchor="start">}</text>
+<rect x="176" y="144" width="160" height="64" rx="6" class="box shade"/><text x="256.0" y="182.0" class="name" text-anchor="middle">예제 CLI</text>
+<rect x="528" y="144" width="160" height="64" rx="6" class="box shade"/><text x="608.0" y="182.0" class="name" text-anchor="middle">Agent</text>
+<rect x="936" y="144" width="160" height="64" rx="6" class="box shade"/><text x="1016.0" y="182.0" class="name" text-anchor="middle">모델</text>
+<line x1="64" y1="660" x2="1216" y2="660" class="rule"/>
+<text x="64" y="687" class="foot" text-anchor="start">CalculationAnswer에서 result는 float, explanation은 str입니다.</text>
+</svg>
+</main>
+</body>
+</html>
