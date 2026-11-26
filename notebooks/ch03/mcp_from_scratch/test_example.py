@@ -4,14 +4,42 @@ from contextlib import redirect_stderr
 import io
 import json
 import os
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
+from urllib.error import HTTPError
 
 import client
 import server
 
 
 class SearchTests(unittest.TestCase):
+    def test_transient_http_error_is_retried(self):
+        response = io.StringIO('{"results": []}')
+        with patch.dict(os.environ, {"TAVILY_API_KEY": "test-key"}):
+            with patch.object(server, "urlopen") as urlopen, patch.object(server.time, "sleep") as sleep:
+                urlopen.side_effect = [HTTPError("https://api.tavily.com/search", 500,
+                                                "Server error", {}, None),
+                                       urlopen.return_value]
+                urlopen.return_value.__enter__.return_value = response
+                with redirect_stderr(io.StringIO()):
+                    self.assertEqual(server.search_tavily({"query": "MCP", "max_results": 2}), [])
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    def test_http_error_retry_limit_and_authentication_errors(self):
+        for status, expected_attempts in ((500, 3), (429, 3), (401, 1)):
+            with self.subTest(status=status), patch.dict(os.environ, {"TAVILY_API_KEY": "test-key"}):
+                with patch.object(server, "urlopen") as urlopen, patch.object(server.time, "sleep"):
+                    urlopen.side_effect = HTTPError("https://api.tavily.com/search", status,
+                                                   "Error", {}, None)
+                    with redirect_stderr(io.StringIO()):
+                        result = server.dispatch("tools/call", {
+                            "name": "tavily_search", "arguments": {"query": "MCP", "max_results": 2},
+                        })
+            self.assertEqual(urlopen.call_count, expected_attempts)
+            self.assertEqual(result, server.tool_result(f"Tavily HTTP error: {status}", True))
+
     def test_tavily_request_and_result(self):
         payload = {"results": [{"title": "MCP", "url": "https://example.com", "content": "설명"}]}
         with patch.dict(os.environ, {"TAVILY_API_KEY": "test-key"}):
@@ -80,14 +108,59 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
                     # SDK 2.x의 OS 감지용 백그라운드 스레드를 샌드박스 테스트에서 생략한다.
                     openai._platform = "Linux"
                     async with client.connect() as mcp:
-                        answer = await client.ask(openai, mcp, "MCP 검색해줘", "test-model")
-        self.assertIn("검색하지 못했습니다", answer)
+                        with self.assertRaisesRegex(RuntimeError, "TAVILY_API_KEY"):
+                            await client.ask(openai, mcp, "MCP 검색해줘", "test-model")
         self.assertEqual(len(requests), 2)
         self.assertEqual(requests[0]["tools"][0]["parameters"], server.SEARCH_TOOL["inputSchema"])
         history = requests[1]["input"]
         self.assertEqual(history[1]["type"], "function_call")
         self.assertEqual(history[2]["call_id"], "call_1")
         self.assertTrue(json.loads(history[2]["output"])["isError"])
+
+    async def test_successful_search_returns_model_answer(self):
+        call = SimpleNamespace(type="function_call", name="tavily_search",
+                               arguments='{"query":"Model Context Protocol","max_results":2}',
+                               call_id="call_1")
+        openai = SimpleNamespace(responses=SimpleNamespace(create=AsyncMock(side_effect=[
+            SimpleNamespace(output=[call]),
+            SimpleNamespace(output=[], output_text="MCP 설명 https://example.com"),
+        ])))
+        mcp = SimpleNamespace(request=AsyncMock(side_effect=[
+            {"tools": [server.SEARCH_TOOL]},
+            server.tool_result('[{"url":"https://example.com","content":"MCP 설명"}]'),
+        ]))
+        self.assertEqual(await client.ask(openai, mcp, "MCP 검색해줘", "test-model"),
+                         "MCP 설명 https://example.com")
+
+    async def test_failed_search_does_not_return_speculative_answer(self):
+        call = SimpleNamespace(type="function_call", name="tavily_search",
+                               arguments='{"query":"MCP","max_results":2}', call_id="call_1")
+        openai = SimpleNamespace(responses=SimpleNamespace(create=AsyncMock(side_effect=[
+            SimpleNamespace(output=[call]),
+            SimpleNamespace(output=[], output_text="MCP는 Microsoft Certified Professional입니다."),
+        ])))
+        mcp = SimpleNamespace(request=AsyncMock(side_effect=[
+            {"tools": [server.SEARCH_TOOL]},
+            server.tool_result("Tavily HTTP error: 500", True),
+        ]))
+        with self.assertRaisesRegex(RuntimeError, "Tavily HTTP error: 500"):
+            await client.ask(openai, mcp, "MCP 검색해줘", "test-model")
+
+    async def test_model_can_recover_from_failed_search(self):
+        call = SimpleNamespace(type="function_call", name="tavily_search",
+                               arguments='{"query":"MCP","max_results":2}', call_id="call_1")
+        openai = SimpleNamespace(responses=SimpleNamespace(create=AsyncMock(side_effect=[
+            SimpleNamespace(output=[call]),
+            SimpleNamespace(output=[call]),
+            SimpleNamespace(output=[], output_text="MCP 설명 https://example.com"),
+        ])))
+        mcp = SimpleNamespace(request=AsyncMock(side_effect=[
+            {"tools": [server.SEARCH_TOOL]},
+            server.tool_result("Tavily HTTP error: 500", True),
+            server.tool_result('[{"url":"https://example.com","content":"MCP 설명"}]'),
+        ]))
+        self.assertEqual(await client.ask(openai, mcp, "MCP 검색해줘", "test-model"),
+                         "MCP 설명 https://example.com")
 
 
 if __name__ == "__main__":

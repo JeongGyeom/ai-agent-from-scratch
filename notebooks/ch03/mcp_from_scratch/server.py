@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -47,8 +48,22 @@ def search_tavily(arguments):
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
-    with urlopen(request, timeout=30) as response:
-        data = json.load(response)
+    deadline = time.monotonic() + 35
+    for attempt in range(3):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("Tavily 검색 재시도 제한 시간이 초과되었습니다.")
+        try:
+            with urlopen(request, timeout=min(30, remaining)) as response:
+                data = json.load(response)
+            break
+        except HTTPError as exc:
+            if exc.code not in {429, 500, 502, 503, 504} or attempt == 2:
+                raise
+            print(f"Tavily HTTP error: {exc.code}; retry {attempt + 1}/2",
+                  file=sys.stderr)
+            exc.close()
+            time.sleep(min(2 ** attempt, max(0, deadline - time.monotonic())))
     return [
         {"title": r.get("title", ""), "url": r.get("url", ""),
          "content": r.get("content", "")}
